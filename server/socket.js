@@ -9,9 +9,15 @@ let io;
  * Returns the io instance so routes/workers can import getIO() instead.
  */
 function initSocket(server) {
+  // CLIENT_URL can be a comma-separated list for multiple origins
+  // e.g. "https://nexuspass.vercel.app,http://localhost:3000"
+  const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+    .split(',')
+    .map(o => o.trim());
+
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:3000',
+      origin: allowedOrigins,
       credentials: true,
     },
   });

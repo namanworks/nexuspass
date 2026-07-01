@@ -1,4 +1,4 @@
-﻿# NexusPass
+# NexusPass
 
 > A production-grade event ticketing platform demonstrate backend concurrency patterns, real-time systems, and cryptographic ticket validation.
 
@@ -318,7 +318,7 @@ JWTs are stored in httpOnly cookies instead of localStorage. This prevents XSS a
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/nexuspass.git
+git clone https://github.com/namanworks/nexuspass.git
 cd nexuspass
 ```
 
