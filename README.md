@@ -1,6 +1,6 @@
 ﻿# NexusPass
 
-> A production-grade event ticketing platform built as a portfolio project to demonstrate backend concurrency patterns, real-time systems, and cryptographic ticket validation.
+> A production-grade event ticketing platform demonstrate backend concurrency patterns, real-time systems, and cryptographic ticket validation.
 
 NexusPass lets users browse events, select seats in real time, book as a group with independent split payments, and receive tickets secured with rotating TOTP-based QR codes that expire every 15 seconds — making screenshots useless as fraud vectors. A regulated resale marketplace allows ticket holders to relist at or below face value.
 
@@ -18,7 +18,6 @@ NexusPass lets users browse events, select seats in real time, book as a group w
 - [Running Locally](#running-locally)
 - [Environment Variables](#environment-variables)
 - [Known Limitations](#known-limitations)
-- [CV Bullet Points](#cv-bullet-points)
 
 ---
 
@@ -395,22 +394,6 @@ All variables go in `server/.env`. Copy from `server/.env.example`.
 | **Single server** | The idempotency cache is an in-memory Map. Replace with Redis SETNX for horizontal scaling across multiple Node.js processes. |
 | **No email notifications** | No emails are sent when group members pay, seats expire, or resale purchases complete. |
 | **Unsold resale listings** | If a listing expires without a buyer, the ticket remains in listed state. A relistWorker background job would handle returning it to valid and refunding the Rs.30 fine. |
-
----
-
-## CV Bullet Points
-
-- Engineered a concurrent seat reservation system using PostgreSQL `SELECT FOR UPDATE SKIP LOCKED`, preventing race conditions under simultaneous booking requests without deadlocks or blocking transactions
-
-- Designed a split-payment group booking flow with per-member partial-release expiry logic — only unpaid seats are released when a lock timer expires, preserving confirmed members tickets
-
-- Built a regulated resale marketplace with face-value price enforcement via a database `CHECK` constraint and atomic `user_id` ownership transfer on purchase
-
-- Implemented TOTP-based rotating QR ticket validation using `otplib` with per-ticket HMAC seeds — QR codes refresh every 15 seconds, rendering screenshots invalid as fraud vectors
-
-- Integrated Socket.io for real-time seat availability updates — all connected clients see seat status changes within milliseconds without polling
-
-- Implemented idempotency keys on booking and payment endpoints, using a database `UNIQUE` constraint as the idempotency store to prevent duplicate charges under network retries
 
 ---
 
