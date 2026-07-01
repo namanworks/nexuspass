@@ -31,8 +31,12 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests from any localhost port (dev) or the configured CLIENT_URL
+      const clientUrls = (process.env.CLIENT_URL || 'http://localhost:3000')
+        .split(',')
+        .map(url => url.trim());
+        
       const allowed = [
-        process.env.CLIENT_URL || 'http://localhost:3000',
+        ...clientUrls,
         'http://localhost:3000',
         'http://localhost:3001',
       ];
