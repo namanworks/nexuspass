@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  /* New Palette: Alabaster Grey / Pine Blue / Dusty Lavender / Strawberry Red */
+  --color-background: #ECEBE9;
+  --color-foreground: #1a1a1a;
+  --color-primary: #846075;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #d6d4d1;
+  --color-secondary-foreground: #1a1a1a;
+  --color-accent: #ED474A;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #ED474A;
+  --color-destructive-foreground: #ffffff;
+  --color-muted: #c8c6c3;
+  --color-muted-foreground: #5a5a5a;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-border: #c0bebb;
+  --color-ring: #846075;
+}
+
+@layer base {
+  :root {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  /* Solid card — replaces glass-card */
+  .glass {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+  }
+
+  .glass-card {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 1rem;
+  }
+
+  /* Solid nav — replaces glass-nav */
+  .glass-nav {
+    background: #ffffff;
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Subtle accent text — replaces neon glow */
+  .neon-text {
+    color: var(--color-primary);
+  }
+}
