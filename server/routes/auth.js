@@ -101,10 +101,17 @@ router.post(
         { expiresIn: process.env.JWT_EXPIRES_IN }
       );
 
+      // sameSite: 'none' + secure: true are REQUIRED for cross-origin cookies
+      // (Vercel frontend → Railway backend). Both must be set together or browsers
+      // will silently block the cookie. NODE_ENV must be 'production' on Railway.
+      const isProduction = process.env.NODE_ENV === 'production';
+      if (!isProduction) {
+        console.warn('[AUTH] NODE_ENV is not "production". Cookie will NOT work cross-origin (Vercel → Railway). Set NODE_ENV=production in Railway environment variables.');
+      }
       res.cookie('token', token, {
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: isProduction ? 'none' : 'lax',
+        secure: isProduction,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
       });
 
@@ -115,6 +122,9 @@ router.post(
           email: user.email,
           name: user.name,
           isAdmin: user.is_admin,
+          // Token is returned in the body for Bearer auth (cross-origin SPA deployments).
+          // The httpOnly cookie above is kept as a fallback for local dev.
+          token,
         },
       });
     } catch (err) {

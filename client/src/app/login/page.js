@@ -24,7 +24,9 @@ export default function LoginPage() {
         body: { email, password },
       });
 
-      // Save user to local storage for quick access in UI (token is httpOnly)
+      // Save user + token to localStorage.
+      // The token field is used by fetchApi() to attach Authorization: Bearer headers
+      // on all subsequent requests (required for cross-origin Vercel → Railway deployments).
       localStorage.setItem('nexusUser', JSON.stringify(data));
       
       // Dispatch storage event to update Navbar immediately

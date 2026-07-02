@@ -7,9 +7,25 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/a
 
 export async function fetchApi(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
+  // Read token from localStorage (stored on login for cross-origin Bearer auth).
+  // typeof window check ensures this works in Next.js SSR/RSC context.
+  let token = null;
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('nexusUser');
+      if (stored) {
+        token = JSON.parse(stored).token;
+      }
+    } catch (_) {
+      // ignore parse errors
+    }
+  }
+
   const headers = {
     'Content-Type': 'application/json',
+    // Attach Bearer token if available — this bypasses cross-origin cookie restrictions
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
