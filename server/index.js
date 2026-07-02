@@ -46,7 +46,7 @@ app.use(
         callback(new Error(`CORS: origin ${origin} not allowed`));
       }
     },
-    credentials: true, // Required for httpOnly cookies to be sent cross-origin
+    credentials: true,
   })
 );
 app.use(express.json());
@@ -98,9 +98,8 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`[SERVER] NexusPass API running on http://localhost:${PORT}`);
-  console.log(`[SERVER] NODE_ENV   : ${process.env.NODE_ENV || '⚠️  NOT SET — cross-origin cookies will fail!'}`);
-  console.log(`[SERVER] CLIENT_URL : ${process.env.CLIENT_URL || '⚠️  NOT SET — CORS will block your Vercel frontend!'}`);
+  console.log(`[SERVER] NexusPass API running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
+  console.log(`[SERVER] CLIENT_URL: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
 
   // Initialise Socket.io after server starts listening
   initSocket(server);

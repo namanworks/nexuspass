@@ -421,9 +421,7 @@ All variables go in `server/.env`. Copy from `server/.env.example`.
 |---|---|
 | `NEXT_PUBLIC_API_URL` | `https://<your-railway-app>.up.railway.app/api` |
 
-3. Deploy. After deployment, **log out and log back in** so the browser stores a fresh token in localStorage.
-
-> **Why re-login after deploy?** Auth tokens are stored in the browser's `localStorage`. Any user logged in before a deployment gets a fresh token on next login — the old entry in localStorage simply won't have the `token` field used by the Bearer header approach.
+3. Deploy. After deploying, log out and log back in on the live site so a fresh token gets saved to localStorage.
 
 ---
 
