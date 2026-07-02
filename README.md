@@ -47,7 +47,7 @@ NexusPass lets users browse events, select seats in real time, book as a group w
 | Database | PostgreSQL | ACID transactions + SELECT FOR UPDATE SKIP LOCKED for concurrency |
 | DB Client | pg (node-postgres) | Raw SQL — no ORM abstraction hiding the concurrency primitives |
 | Real-Time | Socket.io | Rooms per event + per booking group; instant seat status broadcasts |
-| Auth | JWT (jsonwebtoken) | Stateless, stored in httpOnly cookies to prevent XSS token theft |
+| Auth | JWT (jsonwebtoken) | Stateless; sent as `Authorization: Bearer` header from localStorage (cross-origin) with httpOnly cookie fallback for local dev |
 | OTP / QR | otplib + qrcode | Industry-standard TOTP for rotating ticket codes |
 | ID Generation | uuid v4 | Unguessable IDs for tickets, groups, invite tokens |
 | Background Jobs | node-cron | Seat lock expiry worker runs every 30 seconds |
@@ -67,7 +67,7 @@ NexusPass lets users browse events, select seats in real time, book as a group w
 |  / -> /events/[id] -> /groups/[token] -> /tickets -> /verify     |
 |  hooks: useSocket (WebSocket)   lib/api.js (REST)                 |
 +------------------+---------------------------+--------------------+
-                   | REST (HTTP + cookies)      | WebSocket
+                   | REST (HTTP + Bearer JWT)   | WebSocket
                    v                           v
 +------------------------------------------------------------------+
 |                        SERVER (Express)                           |
@@ -202,7 +202,7 @@ Clients join rooms by emitting `join_event` or `join_group` with the relevant ID
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | POST | `/auth/register` | None | Register new user |
-| POST | `/auth/login` | None | Login, sets httpOnly JWT cookie |
+| POST | `/auth/login` | None | Login; returns JWT in response body (and sets httpOnly cookie as fallback) |
 | POST | `/auth/logout` | None | Clears the JWT cookie |
 
 ### Events — `/api/events`
@@ -302,9 +302,13 @@ CONSTRAINT price_cap CHECK (list_price <= purchased_price)
 
 This cannot be bypassed by a bug in the application layer. Even a direct database write would be rejected.
 
-### 6. httpOnly Cookies for JWT
+### 6. Bearer Token Auth for Cross-Origin Deployments
 
-JWTs are stored in httpOnly cookies instead of localStorage. This prevents XSS attacks from stealing the token — JavaScript running on the page cannot access httpOnly cookies. CORS is configured with credentials: true to allow the browser to send cookies cross-origin to the API.
+The server signs a JWT on login and returns it **both** as an httpOnly cookie (local dev convenience) and in the response body. The Next.js frontend stores the token in `localStorage` and attaches it as an `Authorization: Bearer <token>` header on every request via the central `fetchApi()` helper.
+
+This is required because modern browsers (Chrome, Firefox, Safari) block **third-party cookies** by default — even with `SameSite=None; Secure` — when the frontend and backend are on different domains (e.g. Vercel → Railway). Bearer tokens sent in headers are not subject to cookie policies and work reliably in all browsers.
+
+The `authenticateToken` middleware checks the `Authorization` header first, then falls back to the cookie, so both local dev and production work without any configuration change.
 
 ---
 
@@ -382,7 +386,44 @@ All variables go in `server/.env`. Copy from `server/.env.example`.
 | `LOCK_DURATION_MINUTES` | Seat lock duration before expiry worker releases it | `10` |
 | `RELIST_WINDOW_HOURS` | Minimum hours before event that a relist is allowed | `1` |
 | `ADMIN_EMAIL` | Email of the admin user for the scanner page | `admin@nexuspass.dev` |
-| `CLIENT_URL` | Frontend origin for CORS | `http://localhost:3000` |
+| `CLIENT_URL` | Frontend origin(s) for CORS — comma-separate multiple URLs | `http://localhost:3000` |
+| `NODE_ENV` | Set to `production` on Railway — required for `SameSite=None; Secure` cookies | `development` |
+
+### Vercel (Client) Environment Variables
+
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `https://<your-railway-app>.up.railway.app/api` |
+
+---
+
+## Deployment
+
+### Backend → Railway
+
+1. Push the repo — Railway auto-deploys from `master`.
+2. Set the following environment variables in Railway (Variables tab):
+
+| Variable | Value |
+|---|---|
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | Your Railway PostgreSQL connection string |
+| `JWT_SECRET` | A strong random secret |
+| `CLIENT_URL` | `https://<your-vercel-app>.vercel.app` |
+| *(all other vars from the table above)* | |
+
+### Frontend → Vercel
+
+1. Import the `client/` directory (or the monorepo root with `client` as the root directory).
+2. Set the environment variable:
+
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `https://<your-railway-app>.up.railway.app/api` |
+
+3. Deploy. After deployment, **log out and log back in** so the browser stores a fresh token in localStorage.
+
+> **Why re-login after deploy?** Auth tokens are stored in the browser's `localStorage`. Any user logged in before a deployment gets a fresh token on next login — the old entry in localStorage simply won't have the `token` field used by the Bearer header approach.
 
 ---
 
