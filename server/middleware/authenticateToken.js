@@ -1,14 +1,10 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
-/**
- * Reads JWT from Authorization: Bearer header, falls back to httpOnly cookie.
- * Attaches req.user = { userId, email, isAdmin } on success.
- */
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
+  const authHeader = req.headers["authorization"];
   let token = null;
 
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith("Bearer ")) {
     token = authHeader.slice(7);
   } else {
     token = req.cookies?.token;
@@ -17,8 +13,8 @@ function authenticateToken(req, res, next) {
   if (!token) {
     return res.status(401).json({
       error: true,
-      message: 'Authentication required. No token provided.',
-      code: 'UNAUTHENTICATED',
+      message: "Authentication required. No token provided.",
+      code: "UNAUTHENTICATED",
     });
   }
 
@@ -33,22 +29,18 @@ function authenticateToken(req, res, next) {
   } catch (err) {
     return res.status(401).json({
       error: true,
-      message: 'Invalid or expired token. Please log in again.',
-      code: 'UNAUTHENTICATED',
+      message: "Invalid or expired token. Please log in again.",
+      code: "UNAUTHENTICATED",
     });
   }
 }
 
-/**
- * Middleware: requires the authenticated user to be an admin.
- * Must be used after authenticateToken.
- */
 function requireAdmin(req, res, next) {
   if (!req.user?.isAdmin) {
     return res.status(403).json({
       error: true,
-      message: 'Access forbidden. Admin privileges required.',
-      code: 'FORBIDDEN',
+      message: "Access forbidden. Admin privileges required.",
+      code: "FORBIDDEN",
     });
   }
   next();

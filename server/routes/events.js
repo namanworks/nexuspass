@@ -1,13 +1,9 @@
-const express = require('express');
-const pool = require('../db/pool');
+const express = require("express");
+const pool = require("../db/pool");
 
 const router = express.Router();
 
-// ─────────────────────────────────────────────
-// GET /api/events
-// Optional query param: ?category=Concert
-// ─────────────────────────────────────────────
-router.get('/', async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
     const { category } = req.query;
 
@@ -69,11 +65,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// GET /api/events/:eventId
-// Returns event details + all slots
-// ─────────────────────────────────────────────
-router.get('/:eventId', async (req, res, next) => {
+router.get("/:eventId", async (req, res, next) => {
   try {
     const { eventId } = req.params;
 
@@ -89,14 +81,14 @@ router.get('/:eventId', async (req, res, next) => {
        FROM events e
        JOIN categories c ON c.id = e.category_id
        WHERE e.id = $1`,
-      [eventId]
+      [eventId],
     );
 
     if (eventResult.rows.length === 0) {
       return res.status(404).json({
         error: true,
-        message: 'Event not found.',
-        code: 'NOT_FOUND',
+        message: "Event not found.",
+        code: "NOT_FOUND",
       });
     }
 
@@ -105,7 +97,7 @@ router.get('/:eventId', async (req, res, next) => {
        FROM slots
        WHERE event_id = $1
        ORDER BY seat_label`,
-      [eventId]
+      [eventId],
     );
 
     const e = eventResult.rows[0];

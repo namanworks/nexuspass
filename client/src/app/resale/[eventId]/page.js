@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, RefreshCcw, Loader2, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { fetchApi } from '../../../lib/api';
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  RefreshCcw,
+  Loader2,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+import { fetchApi } from "../../../lib/api";
 
 export default function ResaleMarketplacePage({ params }) {
   const { eventId } = use(params);
   const router = useRouter();
-  
+
   const [event, setEvent] = useState(null);
   const [listings, setListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,16 +28,15 @@ export default function ResaleMarketplacePage({ params }) {
   useEffect(() => {
     async function loadMarketplace() {
       try {
-        // Fetch event info and resale listings
         const [eventData, resaleData] = await Promise.all([
           fetchApi(`/events/${eventId}`),
-          fetchApi(`/resale/${eventId}`)
+          fetchApi(`/resale/${eventId}`),
         ]);
-        
+
         setEvent(eventData.event);
         setListings(resaleData.listings);
       } catch (err) {
-        setError(err.message || 'Failed to load marketplace');
+        setError(err.message || "Failed to load marketplace");
       } finally {
         setIsLoading(false);
       }
@@ -39,10 +45,9 @@ export default function ResaleMarketplacePage({ params }) {
   }, [eventId]);
 
   const handleBuy = async (listing) => {
-    // Check if user is logged in
-    const user = localStorage.getItem('nexusUser');
+    const user = localStorage.getItem("nexusUser");
     if (!user) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
 
@@ -52,18 +57,17 @@ export default function ResaleMarketplacePage({ params }) {
     try {
       const idempotencyKey = `buy-${Date.now()}`;
       await fetchApi(`/resale/buy/${listing.id}`, {
-        method: 'POST',
-        body: { idempotencyKey }
+        method: "POST",
+        body: { idempotencyKey },
       });
-      
+
       setBuySuccess(true);
-      
-      // Navigate to tickets page
+
       setTimeout(() => {
-        router.push('/tickets');
+        router.push("/tickets");
       }, 2000);
     } catch (err) {
-      setBuyError(err.message || 'Failed to purchase ticket');
+      setBuyError(err.message || "Failed to purchase ticket");
     } finally {
       setBuyingId(null);
     }
@@ -83,7 +87,10 @@ export default function ResaleMarketplacePage({ params }) {
         <div className="glass-card p-8 border-destructive/30">
           <h2 className="text-xl font-bold mb-2">Error</h2>
           <p className="text-muted-foreground mb-6">{error}</p>
-          <Link href="/" className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-md transition-colors">
+          <Link
+            href="/"
+            className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
+          >
             Back to Dashboard
           </Link>
         </div>
@@ -93,7 +100,10 @@ export default function ResaleMarketplacePage({ params }) {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl relative">
-      <Link href={`/events/${eventId}`} className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-6 font-medium">
+      <Link
+        href={`/events/${eventId}`}
+        className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-6 font-medium"
+      >
         <ArrowLeft className="w-4 h-4" /> Back to Event
       </Link>
 
@@ -103,14 +113,19 @@ export default function ResaleMarketplacePage({ params }) {
         </div>
         <div>
           <h1 className="text-3xl font-bold">Resale Marketplace</h1>
-          <p className="text-muted-foreground">Secure, verified tickets for {event.title}</p>
+          <p className="text-muted-foreground">
+            Secure, verified tickets for {event.title}
+          </p>
         </div>
       </div>
 
       {buySuccess && (
         <div className="mb-8 p-4 bg-primary/10 border border-primary/30 rounded-lg flex items-center justify-center gap-3 animate-in fade-in slide-in-from-top-4">
           <CheckCircle2 className="w-6 h-6 text-primary" />
-          <span className="font-bold text-lg text-primary">Purchase Successful! A new secure QR code has been generated. Redirecting to your wallet...</span>
+          <span className="font-bold text-lg text-primary">
+            Purchase Successful! A new secure QR code has been generated.
+            Redirecting to your wallet...
+          </span>
         </div>
       )}
 
@@ -128,32 +143,44 @@ export default function ResaleMarketplacePage({ params }) {
           </div>
           <h2 className="text-2xl font-bold mb-2">No tickets listed yet</h2>
           <p className="text-muted-foreground max-w-md mx-auto mb-8">
-            There are currently no tickets available for resale for this event. Check back later!
+            There are currently no tickets available for resale for this event.
+            Check back later!
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings.map(listing => {
+          {listings.map((listing) => {
             const timeRemaining = new Date(listing.closes_at) - new Date();
-            const hoursLeft = Math.max(0, Math.floor(timeRemaining / (1000 * 60 * 60)));
-            const minsLeft = Math.max(0, Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60)));
+            const hoursLeft = Math.max(
+              0,
+              Math.floor(timeRemaining / (1000 * 60 * 60)),
+            );
+            const minsLeft = Math.max(
+              0,
+              Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60)),
+            );
 
             return (
-              <div key={listing.id} className="glass-card p-6 flex flex-col border-t border-t-border hover:shadow-md transition-shadow">
-                
+              <div
+                key={listing.id}
+                className="glass-card p-6 flex flex-col border-t border-t-border hover:shadow-md transition-shadow"
+              >
                 <div className="flex justify-between items-start mb-6">
                   <span className="font-mono font-bold text-foreground bg-secondary px-3 py-1 rounded-md border border-border">
                     Seat {listing.seat_label}
                   </span>
-                  
+
                   <div className="flex items-center gap-1 text-xs font-medium text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20">
                     <Clock className="w-3 h-3" />
-                    {hoursLeft > 0 ? `${hoursLeft}h ` : ''}{minsLeft}m left
+                    {hoursLeft > 0 ? `${hoursLeft}h ` : ""}
+                    {minsLeft}m left
                   </div>
                 </div>
 
                 <div className="flex-grow flex flex-col justify-center items-center py-4">
-                  <span className="text-sm text-muted-foreground uppercase tracking-widest mb-1">Buy Now</span>
+                  <span className="text-sm text-muted-foreground uppercase tracking-widest mb-1">
+                    Buy Now
+                  </span>
                   <div className="text-4xl font-black text-accent">
                     ₹{parseFloat(listing.list_price)}
                   </div>
@@ -164,7 +191,11 @@ export default function ResaleMarketplacePage({ params }) {
                   disabled={buyingId !== null || buySuccess}
                   className="mt-6 w-full py-3 bg-accent hover:bg-accent/90 text-accent-foreground font-bold rounded-lg transition-all shadow-sm flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {buyingId === listing.id ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Purchase Ticket'}
+                  {buyingId === listing.id ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Purchase Ticket"
+                  )}
                 </button>
               </div>
             );

@@ -1,48 +1,39 @@
-const pool = require('../pool');
+const pool = require("../pool");
 
-/**
- * Create a ticket record within a transaction.
- * Status is set to 'valid' for paid tickets.
- */
-async function createTicket(client, { slotId, userId, groupId, purchasedPrice, totpSeed }) {
+async function createTicket(
+  client,
+  { slotId, userId, groupId, purchasedPrice, totpSeed },
+) {
   const result = await client.query(
     `INSERT INTO tickets (slot_id, user_id, group_id, status, purchased_price, totp_seed)
      VALUES ($1, $2, $3, 'valid', $4, $5)
      RETURNING id, slot_id, user_id, group_id, status, purchased_price, relist_used, created_at`,
-    [slotId, userId, groupId, purchasedPrice, totpSeed]
+    [slotId, userId, groupId, purchasedPrice, totpSeed],
   );
   return result.rows[0];
 }
 
-/**
- * Create a transaction record within a DB transaction.
- * The idempotency_key UNIQUE constraint prevents duplicate charges.
- */
-async function createTransaction(client, { userId, ticketId, amount, type, idempotencyKey }) {
+async function createTransaction(
+  client,
+  { userId, ticketId, amount, type, idempotencyKey },
+) {
   const result = await client.query(
     `INSERT INTO transactions (user_id, ticket_id, amount, type, idempotency_key)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING id, user_id, ticket_id, amount, type, idempotency_key, created_at`,
-    [userId, ticketId, amount, type, idempotencyKey]
+    [userId, ticketId, amount, type, idempotencyKey],
   );
   return result.rows[0];
 }
 
-/**
- * Check if an idempotency key has already been used in the transactions table.
- * Used as a fast-path pre-check before starting a transaction.
- */
 async function checkIdempotencyKey(idempotencyKey) {
   const result = await pool.query(
-    'SELECT id FROM transactions WHERE idempotency_key = $1',
-    [idempotencyKey]
+    "SELECT id FROM transactions WHERE idempotency_key = $1",
+    [idempotencyKey],
   );
   return result.rows.length > 0;
 }
 
-/**
- * Fetch all tickets for a specific user.
- */
 async function getTicketsByUser(userId) {
   const result = await pool.query(
     `SELECT t.id, t.status, t.relist_used,
@@ -53,14 +44,11 @@ async function getTicketsByUser(userId) {
      JOIN events e ON e.id = s.event_id
      WHERE t.user_id = $1
      ORDER BY e.start_time ASC`,
-    [userId]
+    [userId],
   );
   return result.rows;
 }
 
-/**
- * Fetch a single ticket by ID.
- */
 async function getTicketById(ticketId) {
   const result = await pool.query(
     `SELECT t.id, t.user_id, t.status, t.purchased_price, t.relist_used, t.totp_seed,
@@ -70,20 +58,17 @@ async function getTicketById(ticketId) {
      JOIN slots s ON s.id = t.slot_id
      JOIN events e ON e.id = s.event_id
      WHERE t.id = $1`,
-    [ticketId]
+    [ticketId],
   );
   return result.rows[0] || null;
 }
 
-/**
- * Mark a ticket as used after successful scanning.
- */
 async function markTicketUsed(ticketId) {
   await pool.query(
     `UPDATE tickets
      SET status = 'used'
      WHERE id = $1`,
-    [ticketId]
+    [ticketId],
   );
 }
 

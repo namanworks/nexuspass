@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Ticket, CalendarDays, MapPin, Loader2, ArrowRight } from 'lucide-react';
-import { fetchApi } from '../../lib/api';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  Ticket,
+  CalendarDays,
+  MapPin,
+  Loader2,
+  ArrowRight,
+} from "lucide-react";
+import { fetchApi } from "../../lib/api";
 
 export default function TicketsPage() {
   const router = useRouter();
@@ -15,16 +21,16 @@ export default function TicketsPage() {
   useEffect(() => {
     async function loadTickets() {
       try {
-        const storedUser = localStorage.getItem('nexusUser');
+        const storedUser = localStorage.getItem("nexusUser");
         if (!storedUser) {
-          router.push('/login');
+          router.push("/login");
           return;
         }
 
-        const data = await fetchApi('/tickets');
+        const data = await fetchApi("/tickets");
         setTickets(data.tickets);
       } catch (err) {
-        setError(err.message || 'Failed to load tickets');
+        setError(err.message || "Failed to load tickets");
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +65,9 @@ export default function TicketsPage() {
         </div>
         <div>
           <h1 className="text-3xl font-bold">My Tickets</h1>
-          <p className="text-muted-foreground">Manage your event passes and resale listings</p>
+          <p className="text-muted-foreground">
+            Manage your event passes and resale listings
+          </p>
         </div>
       </div>
 
@@ -70,42 +78,55 @@ export default function TicketsPage() {
           </div>
           <h2 className="text-2xl font-bold mb-2">No tickets yet</h2>
           <p className="text-muted-foreground max-w-md mx-auto mb-8">
-            You don't have any tickets in your wallet. Explore upcoming events and secure your spot!
+            You don't have any tickets in your wallet. Explore upcoming events
+            and secure your spot!
           </p>
-          <Link href="/" className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-all shadow-sm">
+          <Link
+            href="/"
+            className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-all shadow-sm"
+          >
             Explore Events
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {tickets.map(ticket => {
-            
+          {tickets.map((ticket) => {
             let statusConfig = {
-              color: 'text-green-400',
-              bg: 'bg-green-500/10 border-green-500/30',
-              label: 'Valid'
+              color: "text-green-400",
+              bg: "bg-green-500/10 border-green-500/30",
+              label: "Valid",
             };
 
-            if (ticket.status === 'used') {
+            if (ticket.status === "used") {
               statusConfig = {
-                color: 'text-muted-foreground',
-                bg: 'bg-secondary border-border',
-                label: 'Used'
+                color: "text-muted-foreground",
+                bg: "bg-secondary border-border",
+                label: "Used",
               };
-            } else if (ticket.status === 'listed') {
+            } else if (ticket.status === "listed") {
               statusConfig = {
-                color: 'text-orange-400',
-                bg: 'bg-orange-500/10 border-orange-500/30',
-                label: 'Listed for resale'
+                color: "text-orange-400",
+                bg: "bg-orange-500/10 border-orange-500/30",
+                label: "Listed for resale",
               };
             }
 
             return (
-              <Link href={`/tickets/${ticket.id}`} key={ticket.id} className="group">
-                <div className="glass-card p-6 h-full flex flex-col transition-all duration-300 hover:scale-[1.02] hover:shadow-md border-l-4" style={{ borderLeftColor: statusConfig.color.replace('text-', '') }}>
-                  
+              <Link
+                href={`/tickets/${ticket.id}`}
+                key={ticket.id}
+                className="group"
+              >
+                <div
+                  className="glass-card p-6 h-full flex flex-col transition-all duration-300 hover:scale-[1.02] hover:shadow-md border-l-4"
+                  style={{
+                    borderLeftColor: statusConfig.color.replace("text-", ""),
+                  }}
+                >
                   <div className="flex justify-between items-start mb-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${statusConfig.bg} ${statusConfig.color}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${statusConfig.bg} ${statusConfig.color}`}
+                    >
                       {statusConfig.label}
                     </span>
                     <span className="font-mono font-bold text-foreground bg-secondary px-3 py-1 rounded-md border border-border">
@@ -113,14 +134,25 @@ export default function TicketsPage() {
                     </span>
                   </div>
 
-                  <h2 className="text-2xl font-bold mb-4 line-clamp-1">{ticket.event.title}</h2>
-                  
+                  <h2 className="text-2xl font-bold mb-4 line-clamp-1">
+                    {ticket.event.title}
+                  </h2>
+
                   <div className="flex-grow flex flex-col gap-2 text-sm text-muted-foreground mb-6">
                     <div className="flex items-center gap-2">
                       <CalendarDays className="w-4 h-4" />
-                      <span>{new Date(ticket.event.start_time).toLocaleString(undefined, {
-                        weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                      })}</span>
+                      <span>
+                        {new Date(ticket.event.start_time).toLocaleString(
+                          undefined,
+                          {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />

@@ -1,30 +1,35 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ScanLine, Loader2, CheckCircle2, AlertCircle, ShieldAlert } from 'lucide-react';
-import { fetchApi } from '../../lib/api';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ScanLine,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  ShieldAlert,
+} from "lucide-react";
+import { fetchApi } from "../../lib/api";
 
 export default function VerifyPage() {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  
-  const [ticketId, setTicketId] = useState('');
-  const [token, setToken] = useState('');
-  
+
+  const [ticketId, setTicketId] = useState("");
+  const [token, setToken] = useState("");
+
   const [isVerifying, setIsVerifying] = useState(false);
-  const [result, setResult] = useState(null); // { success: boolean, message: string, data?: object }
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
-    // Basic frontend admin check
-    const storedUser = localStorage.getItem('nexusUser');
+    const storedUser = localStorage.getItem("nexusUser");
     if (!storedUser) {
-      router.push('/login');
+      router.push("/login");
     } else {
       const user = JSON.parse(storedUser);
       if (!user.isAdmin) {
-        router.push('/');
+        router.push("/");
       } else {
         setIsAdmin(true);
       }
@@ -38,31 +43,36 @@ export default function VerifyPage() {
     setResult(null);
 
     try {
-      const data = await fetchApi('/verify', {
-        method: 'POST',
-        body: { ticketId, token }
+      const data = await fetchApi("/verify", {
+        method: "POST",
+        body: { ticketId, token },
       });
-      
+
       setResult({
         success: true,
-        message: 'Ticket successfully verified and marked as used. Entry granted.',
-        data: data
+        message:
+          "Ticket successfully verified and marked as used. Entry granted.",
+        data: data,
       });
-      
-      // Clear inputs on success for next scan
-      setTicketId('');
-      setToken('');
+
+      setTicketId("");
+      setToken("");
     } catch (err) {
       setResult({
         success: false,
-        message: err.message || 'Verification failed. Invalid or expired QR.'
+        message: err.message || "Verification failed. Invalid or expired QR.",
       });
     } finally {
       setIsVerifying(false);
     }
   };
 
-  if (isLoadingAuth) return <div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto" /></div>;
+  if (isLoadingAuth)
+    return (
+      <div className="p-8 text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+      </div>
+    );
   if (!isAdmin) return null;
 
   return (
@@ -79,16 +89,19 @@ export default function VerifyPage() {
             <ScanLine className="w-8 h-8 text-primary neon-text" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Venue Scanner</h1>
-          <p className="text-muted-foreground mt-2 text-center">Scan or manually enter TOTP tokens for entry validation.</p>
+          <p className="text-muted-foreground mt-2 text-center">
+            Scan or manually enter TOTP tokens for entry validation.
+          </p>
         </div>
 
-        {/* Verification Result Area */}
         {result && (
-          <div className={`p-6 rounded-xl mb-8 border transition-all ${
-            result.success 
-              ? 'bg-green-500/10 border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.2)]' 
-              : 'bg-destructive/10 border-destructive/40 shadow-[0_0_20px_rgba(239,68,68,0.2)]'
-          }`}>
+          <div
+            className={`p-6 rounded-xl mb-8 border transition-all ${
+              result.success
+                ? "bg-green-500/10 border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.2)]"
+                : "bg-destructive/10 border-destructive/40 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+            }`}
+          >
             <div className="flex items-start gap-4">
               {result.success ? (
                 <CheckCircle2 className="w-8 h-8 text-green-400 flex-shrink-0" />
@@ -96,15 +109,29 @@ export default function VerifyPage() {
                 <AlertCircle className="w-8 h-8 text-destructive flex-shrink-0" />
               )}
               <div>
-                <h3 className={`text-lg font-bold mb-1 ${result.success ? 'text-green-400' : 'text-destructive'}`}>
-                  {result.success ? 'Access Granted' : 'Access Denied'}
+                <h3
+                  className={`text-lg font-bold mb-1 ${result.success ? "text-green-400" : "text-destructive"}`}
+                >
+                  {result.success ? "Access Granted" : "Access Denied"}
                 </h3>
-                <p className="text-foreground/90 font-medium mb-2">{result.message}</p>
-                
+                <p className="text-foreground/90 font-medium mb-2">
+                  {result.message}
+                </p>
+
                 {result.success && result.data && (
                   <div className="mt-4 pt-4 border-t border-green-500/20 text-sm">
-                    <p><span className="text-muted-foreground">Event:</span> <strong className="text-foreground">{result.data.event.title}</strong></p>
-                    <p><span className="text-muted-foreground">Seat:</span> <strong className="text-foreground">{result.data.seat.seatLabel}</strong></p>
+                    <p>
+                      <span className="text-muted-foreground">Event:</span>{" "}
+                      <strong className="text-foreground">
+                        {result.data.event.title}
+                      </strong>
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Seat:</span>{" "}
+                      <strong className="text-foreground">
+                        {result.data.seat.seatLabel}
+                      </strong>
+                    </p>
                   </div>
                 )}
               </div>
@@ -114,7 +141,9 @@ export default function VerifyPage() {
 
         <form onSubmit={handleVerify} className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">Ticket ID (UUID)</label>
+            <label className="text-sm font-medium text-foreground">
+              Ticket ID (UUID)
+            </label>
             <input
               type="text"
               required
@@ -125,7 +154,9 @@ export default function VerifyPage() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">6-Digit TOTP Token</label>
+            <label className="text-sm font-medium text-foreground">
+              6-Digit TOTP Token
+            </label>
             <input
               type="text"
               required
@@ -142,7 +173,13 @@ export default function VerifyPage() {
             disabled={isVerifying || ticketId.length < 10 || token.length !== 6}
             className="mt-4 w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isVerifying ? <Loader2 className="w-6 h-6 animate-spin" /> : <><ScanLine className="w-6 h-6" /> Verify Ticket</>}
+            {isVerifying ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+              <>
+                <ScanLine className="w-6 h-6" /> Verify Ticket
+              </>
+            )}
           </button>
         </form>
       </div>

@@ -1,10 +1,5 @@
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 
-/**
- * Simulates a payment processor.
- * Always succeeds in mock mode.
- * Replace with Razorpay SDK calls for production payment processing.
- */
 async function simulatePayment(amount, userId) {
   return {
     success: true,

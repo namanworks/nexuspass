@@ -1,10 +1,5 @@
-const pool = require('../pool');
+const pool = require("../pool");
 
-/**
- * Create a new booking group for an event.
- * Uses LOCK_DURATION_MINUTES from env for the expiry window.
- * Uses parameterized interval to avoid SQL injection.
- */
 async function createGroup(eventId, leaderUserId, inviteLinkToken) {
   const lockMinutes = parseInt(process.env.LOCK_DURATION_MINUTES, 10) || 10;
   const result = await pool.query(
@@ -13,21 +8,17 @@ async function createGroup(eventId, leaderUserId, inviteLinkToken) {
      VALUES
        ($1, $2, 'pending', NOW() + INTERVAL '1 minute' * $3, $4)
      RETURNING id, event_id, leader_user_id, status, expires_at, invite_link_token`,
-    [eventId, leaderUserId, lockMinutes, inviteLinkToken]
+    [eventId, leaderUserId, lockMinutes, inviteLinkToken],
   );
   return result.rows[0];
 }
 
-/**
- * Add a user to a booking group (no seat selected yet).
- * Idempotent: returns existing invite if user is already a member.
- */
 async function addMemberToGroup(groupId, userId) {
   const existing = await pool.query(
     `SELECT id, group_id, user_id, seat_id, payment_status
      FROM group_invites
      WHERE group_id = $1 AND user_id = $2`,
-    [groupId, userId]
+    [groupId, userId],
   );
 
   if (existing.rows.length > 0) {
@@ -38,15 +29,11 @@ async function addMemberToGroup(groupId, userId) {
     `INSERT INTO group_invites (group_id, user_id, payment_status)
      VALUES ($1, $2, 'pending')
      RETURNING id, group_id, user_id, seat_id, payment_status`,
-    [groupId, userId]
+    [groupId, userId],
   );
   return { invite: result.rows[0], alreadyMember: false };
 }
 
-/**
- * Get a specific member's invite in a group.
- * Accepts pool or transaction client as first argument.
- */
 async function getMemberInvite(queryable, groupId, userId) {
   const result = await queryable.query(
     `SELECT gi.id, gi.group_id, gi.user_id, gi.seat_id, gi.payment_status,
@@ -54,47 +41,36 @@ async function getMemberInvite(queryable, groupId, userId) {
      FROM group_invites gi
      LEFT JOIN slots s ON s.id = gi.seat_id
      WHERE gi.group_id = $1 AND gi.user_id = $2`,
-    [groupId, userId]
+    [groupId, userId],
   );
   return result.rows[0] || null;
 }
 
-/**
- * Update a member's payment status. Must run inside a transaction.
- */
 async function updateMemberPayment(client, groupId, userId, status) {
   await client.query(
     `UPDATE group_invites SET payment_status = $1
      WHERE group_id = $2 AND user_id = $3`,
-    [status, groupId, userId]
+    [status, groupId, userId],
   );
 }
 
-/**
- * Lock a booking group row with FOR UPDATE inside a transaction.
- * Serializes payment operations with the expiry worker to prevent races.
- */
 async function lockBookingGroup(client, groupId) {
   const result = await client.query(
     `SELECT id, event_id, leader_user_id, status, expires_at, invite_link_token
      FROM booking_groups
      WHERE id = $1
      FOR UPDATE`,
-    [groupId]
+    [groupId],
   );
   return result.rows[0] || null;
 }
 
-/**
- * Check if all group members who have selected a seat have paid.
- * Used to determine whether to mark the group as 'confirmed'.
- */
 async function allSeatedMembersPaid(client, groupId) {
   const result = await client.query(
     `SELECT COUNT(*) AS unpaid_count
      FROM group_invites
      WHERE group_id = $1 AND seat_id IS NOT NULL AND payment_status = 'pending'`,
-    [groupId]
+    [groupId],
   );
   return parseInt(result.rows[0].unpaid_count, 10) === 0;
 }

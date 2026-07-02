@@ -1,16 +1,10 @@
-const express = require('express');
-const { authenticateToken } = require('../middleware/authenticateToken');
-const { getTicketsByUser, getTicketById } = require('../db/queries/tickets');
+const express = require("express");
+const { authenticateToken } = require("../middleware/authenticateToken");
+const { getTicketsByUser, getTicketById } = require("../db/queries/tickets");
 
 const router = express.Router();
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GET /api/tickets
-// Auth: Required
-//
-// Fetches all tickets owned by the authenticated user.
-// ─────────────────────────────────────────────────────────────────────────────
-router.get('/', authenticateToken, async (req, res, next) => {
+router.get("/", authenticateToken, async (req, res, next) => {
   try {
     const { userId } = req.user;
     const tickets = await getTicketsByUser(userId);
@@ -18,7 +12,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
     return res.status(200).json({
       success: true,
       data: {
-        tickets: tickets.map(t => ({
+        tickets: tickets.map((t) => ({
           id: t.id,
           status: t.status,
           relist_used: t.relist_used,
@@ -38,13 +32,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
   }
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GET /api/tickets/:ticketId
-// Auth: Required (must be ticket owner)
-//
-// Fetches detailed information about a specific ticket.
-// ─────────────────────────────────────────────────────────────────────────────
-router.get('/:ticketId', authenticateToken, async (req, res, next) => {
+router.get("/:ticketId", authenticateToken, async (req, res, next) => {
   try {
     const { ticketId } = req.params;
     const { userId } = req.user;
@@ -52,11 +40,17 @@ router.get('/:ticketId', authenticateToken, async (req, res, next) => {
     const ticket = await getTicketById(ticketId);
 
     if (!ticket) {
-      return res.status(404).json({ error: true, message: 'Ticket not found.', code: 'NOT_FOUND' });
+      return res
+        .status(404)
+        .json({ error: true, message: "Ticket not found.", code: "NOT_FOUND" });
     }
 
     if (ticket.user_id !== userId) {
-      return res.status(403).json({ error: true, message: 'You do not have access to this ticket.', code: 'FORBIDDEN' });
+      return res.status(403).json({
+        error: true,
+        message: "You do not have access to this ticket.",
+        code: "FORBIDDEN",
+      });
     }
 
     return res.status(200).json({
@@ -81,13 +75,7 @@ router.get('/:ticketId', authenticateToken, async (req, res, next) => {
   }
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GET /api/tickets/:ticketId/seed
-// Auth: Required (must be ticket owner)
-//
-// Returns the TOTP seed for the ticket. Only returns if status is valid or listed.
-// ─────────────────────────────────────────────────────────────────────────────
-router.get('/:ticketId/seed', authenticateToken, async (req, res, next) => {
+router.get("/:ticketId/seed", authenticateToken, async (req, res, next) => {
   try {
     const { ticketId } = req.params;
     const { userId } = req.user;
@@ -95,18 +83,27 @@ router.get('/:ticketId/seed', authenticateToken, async (req, res, next) => {
     const ticket = await getTicketById(ticketId);
 
     if (!ticket) {
-      return res.status(404).json({ error: true, message: 'Ticket not found.', code: 'NOT_FOUND' });
+      return res
+        .status(404)
+        .json({ error: true, message: "Ticket not found.", code: "NOT_FOUND" });
     }
 
     if (ticket.user_id !== userId) {
-      return res.status(403).json({ error: true, message: 'You do not have access to this ticket.', code: 'FORBIDDEN' });
+      return res.status(403).json({
+        error: true,
+        message: "You do not have access to this ticket.",
+        code: "FORBIDDEN",
+      });
     }
 
-    if (ticket.status === 'used' || ticket.status === 'pending_lock') {
-      return res.status(400).json({ error: true, message: 'Seed not available for this ticket status.', code: 'TICKET_ALREADY_USED' });
+    if (ticket.status === "used" || ticket.status === "pending_lock") {
+      return res.status(400).json({
+        error: true,
+        message: "Seed not available for this ticket status.",
+        code: "TICKET_ALREADY_USED",
+      });
     }
 
-    // Spec says return seed if status is 'valid' or 'listed'.
     return res.status(200).json({
       success: true,
       data: {

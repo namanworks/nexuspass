@@ -1,23 +1,18 @@
-const pool = require('../pool');
+const pool = require("../pool");
 
-/**
- * Create a new resale listing in the marketplace.
- * Must run inside a transaction.
- */
-async function createResaleListing(client, { ticketId, sellerId, listPrice, purchasedPrice, relistFine, closesAt }) {
+async function createResaleListing(
+  client,
+  { ticketId, sellerId, listPrice, purchasedPrice, relistFine, closesAt },
+) {
   const result = await client.query(
     `INSERT INTO resale_marketplace (ticket_id, seller_user_id, list_price, purchased_price, relist_fine, closes_at, status)
      VALUES ($1, $2, $3, $4, $5, $6, 'active')
      RETURNING id, ticket_id, list_price, closes_at`,
-    [ticketId, sellerId, listPrice, purchasedPrice, relistFine, closesAt]
+    [ticketId, sellerId, listPrice, purchasedPrice, relistFine, closesAt],
   );
   return result.rows[0];
 }
 
-/**
- * Fetch all active resale listings for a specific event.
- * Called outside of a transaction.
- */
 async function getResaleListings(eventId) {
   const result = await pool.query(
     `SELECT rm.id, rm.list_price, rm.closes_at,
@@ -30,15 +25,11 @@ async function getResaleListings(eventId) {
      JOIN users u ON u.id = rm.seller_user_id
      WHERE s.event_id = $1 AND rm.status = 'active' AND rm.closes_at > NOW()
      ORDER BY rm.list_price ASC`,
-    [eventId]
+    [eventId],
   );
   return result.rows;
 }
 
-/**
- * Lock a resale listing for purchase to prevent concurrent buys.
- * Also joins necessary event and ticket details.
- */
 async function getResaleListingForUpdate(client, listingId) {
   const result = await client.query(
     `SELECT rm.id, rm.status, rm.list_price, rm.seller_user_id, rm.ticket_id,
@@ -51,21 +42,17 @@ async function getResaleListingForUpdate(client, listingId) {
      JOIN events e ON e.id = s.event_id
      WHERE rm.id = $1
      FOR UPDATE`,
-    [listingId]
+    [listingId],
   );
   return result.rows[0] || null;
 }
 
-/**
- * Mark a listing as sold to a buyer.
- * Must run inside a transaction.
- */
 async function markListingSold(client, listingId, buyerId) {
   await client.query(
     `UPDATE resale_marketplace
      SET status = 'sold', buyer_user_id = $1
      WHERE id = $2`,
-    [buyerId, listingId]
+    [buyerId, listingId],
   );
 }
 

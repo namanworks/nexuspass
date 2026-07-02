@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { CalendarDays, MapPin, Loader2, ArrowRight } from 'lucide-react';
-import { fetchApi } from '../lib/api';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { CalendarDays, MapPin, Loader2, ArrowRight } from "lucide-react";
+import { fetchApi } from "../lib/api";
 
 export default function Home() {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeTab, setActiveTab] = useState("All");
 
   useEffect(() => {
     async function loadEvents() {
       try {
-        const data = await fetchApi('/events');
+        const data = await fetchApi("/events");
         setEvents(data.events);
       } catch (err) {
-        setError(err.message || 'Failed to load events');
+        setError(err.message || "Failed to load events");
       } finally {
         setIsLoading(false);
       }
@@ -25,10 +25,14 @@ export default function Home() {
     loadEvents();
   }, []);
 
-  const categories = ['All', ...new Set(events.map(e => e.category.name))].filter(Boolean);
-  const filteredEvents = activeTab === 'All' 
-    ? events 
-    : events.filter(e => e.category.name === activeTab);
+  const categories = [
+    "All",
+    ...new Set(events.map((e) => e.category.name)),
+  ].filter(Boolean);
+  const filteredEvents =
+    activeTab === "All"
+      ? events
+      : events.filter((e) => e.category.name === activeTab);
 
   if (isLoading) {
     return (
@@ -56,20 +60,21 @@ export default function Home() {
             Discover <span className="text-primary neon-text">Events</span>
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl">
-            Secure your spot at the best concerts, movies, and comedy shows. Regulated resale guarantees fair pricing.
+            Secure your spot at the best concerts, movies, and comedy shows.
+            Regulated resale guarantees fair pricing.
           </p>
         </div>
-        
-        {/* Category Tabs */}
+
+        {}
         <div className="flex bg-secondary/50 p-1 rounded-lg border border-border overflow-x-auto w-full md:w-auto">
-          {categories.map(category => (
+          {categories.map((category) => (
             <button
               key={category}
               onClick={() => setActiveTab(category)}
               className={`px-6 py-2 rounded-md font-medium text-sm transition-all whitespace-nowrap ${
-                activeTab === category 
-                  ? 'bg-primary text-primary-foreground shadow-md' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                activeTab === category
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
             >
               {category}
@@ -79,31 +84,44 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredEvents.map(event => (
-          <Link href={`/events/${event.id}`} key={event.id} className="group h-full">
+        {filteredEvents.map((event) => (
+          <Link
+            href={`/events/${event.id}`}
+            key={event.id}
+            className="group h-full"
+          >
             <div className="glass-card h-full flex flex-col p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-md border-t border-t-border">
-              
-              {/* Category Badge */}
+              {}
               <div className="flex justify-between items-start mb-6">
                 <span className="px-3 py-1 bg-primary/20 text-primary text-xs font-semibold uppercase tracking-wider rounded-full border border-primary/30">
                   {event.category.name}
                 </span>
                 <div className="text-right">
-                  <span className="text-xs text-muted-foreground uppercase">Starting from</span>
-                  <div className="text-lg font-bold text-accent">₹{event.price_range.min}</div>
+                  <span className="text-xs text-muted-foreground uppercase">
+                    Starting from
+                  </span>
+                  <div className="text-lg font-bold text-accent">
+                    ₹{event.price_range.min}
+                  </div>
                 </div>
               </div>
 
               <h2 className="text-2xl font-bold mb-4 line-clamp-2 group-hover:text-primary transition-colors">
                 {event.title}
               </h2>
-              
+
               <div className="flex-grow flex flex-col gap-3 text-muted-foreground text-sm mb-8">
                 <div className="flex items-center gap-2">
                   <CalendarDays className="w-4 h-4 text-primary/70" />
-                  <span>{new Date(event.start_time).toLocaleString(undefined, {
-                    weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                  })}</span>
+                  <span>
+                    {new Date(event.start_time).toLocaleString(undefined, {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-primary/70" />
